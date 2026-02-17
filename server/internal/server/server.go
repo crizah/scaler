@@ -52,7 +52,14 @@ func (s *Server) PopulateQuestions() {
 			Difficulty:    1,
 			Prompt:        "meow meow?",
 			Choices:       []string{"yes", "no", "lol idk", "haha"},
-			CorrectAnswer: "Cyes",
+			CorrectAnswer: "yes",
+		},
+		models.Question{
+			Id:            "11",
+			Difficulty:    1,
+			Prompt:        "what happens when i turn my headlights on?",
+			Choices:       []string{"suddenly i can see", "ive got tunnel vision", "im an idiot", "i learn of right and wrong"},
+			CorrectAnswer: "suddenly i can see",
 		},
 		models.Question{
 			Id:            "2",

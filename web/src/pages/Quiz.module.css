@@ -1,222 +1,270 @@
+/* =========================
+   Page Layout
+========================= */
 
 .page {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: var(--sp-8) var(--sp-6);
+  min-height: 100vh;
+  padding: var(--space-6);
+  background: var(--color-bg-primary);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-8);
+  gap: var(--space-6);
+  transition: background var(--transition-base);
 }
 
-/* ── HUD ──────────────────────────────────────────────── */
+/* =========================
+   HUD (Score / Streak / Level)
+========================= */
+
 .hud {
   display: flex;
-  gap: var(--sp-6);
-  padding: var(--sp-4) var(--sp-5);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  justify-content: center;
+  gap: var(--space-8);
+  flex-wrap: wrap;
 }
 
 .hudItem {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  min-width: var(--hud-item-min-width);
 }
 
 .hudLabel {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-widest);
-  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--letter-spacing-wide);
 }
 
 .hudValue {
-  font-family: var(--font-mono);
-  font-size: var(--text-xl);
-  color: var(--color-text-accent);
-}
-
-/* ── Main ─────────────────────────────────────────────── */
-.main {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-6);
-}
-
-.status {
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--color-text-tertiary);
-}
-
-/* ── Prompt ───────────────────────────────────────────── */
-.prompt {
-  font-size: var(--text-lg);
-  font-weight: var(--weight-medium);
-  line-height: var(--leading-snug);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
-/* ── Choices ──────────────────────────────────────────── */
-.choices {
-  list-style: none;
+/* =========================
+   Main Card
+========================= */
+
+.main {
+  width: 100%;
+  max-width: var(--container-md);
+  margin: 0 auto;
+  padding: var(--space-8);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
+  gap: var(--space-6);
+}
+
+/* =========================
+   States
+========================= */
+
+.status {
+  text-align: center;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.errorMsg {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+.retryBtn {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.retryBtn:hover {
+  background: var(--color-accent-hover);
+}
+
+/* =========================
+   Question
+========================= */
+
+.prompt {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* =========================
+   Choices
+========================= */
+
+.choices {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .choice {
   width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
-  gap: var(--sp-4);
-  padding: var(--sp-4) var(--sp-5);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  color: var(--color-text-primary);
-  font-size: var(--text-base);
-  font-family: var(--font-body);
+  gap: var(--space-3);
+  font-size: var(--font-size-base);
   cursor: pointer;
-  text-align: left;
-  transition: border-color var(--t-fast), background var(--t-fast);
+  transition: background var(--transition-fast),
+              border var(--transition-fast),
+              transform var(--transition-fast),
+              box-shadow var(--transition-fast);
 }
-.choice:not(:disabled):hover {
-  border-color: var(--color-border-strong);
-  background: var(--color-bg-tertiary);
+
+.choice:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  transform: translateY(-1px);
 }
-.choice:disabled { cursor: default; }
+
+.choice:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-focus-ring);
+}
+
+.choice:disabled {
+  cursor: not-allowed;
+  opacity: var(--opacity-disabled);
+}
 
 .choiceLetter {
-  width: 26px;
-  height: 26px;
-  min-width: 26px;
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
 }
 
-/* selected while submitting */
-.choice.selected {
+/* =========================
+   Choice States
+========================= */
+
+.idle {}
+
+.selected {
   border-color: var(--color-accent);
-  background: var(--color-accent-dim);
-}
-.choice.selected .choiceLetter {
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
-  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
 }
 
-/* correct */
-.choice.correct {
+.correct {
   border-color: var(--color-success);
-  background: var(--color-success-bg);
-}
-.choice.correct .choiceLetter {
-  background: var(--color-success);
-  color: var(--color-text-inverse);
-  border-color: var(--color-success);
+  background: var(--color-success-soft);
 }
 
-/* wrong */
-.choice.wrong {
-  border-color: var(--color-error);
-  background: var(--color-error-bg);
-}
-.choice.wrong .choiceLetter {
-  background: var(--color-error);
-  color: var(--color-text-inverse);
-  border-color: var(--color-error);
+.wrong {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
 }
 
-/* ── Result banner ────────────────────────────────────── */
+/* =========================
+   Result Banner
+========================= */
+
 .result {
-  padding: var(--sp-5) var(--sp-6);
+  margin-top: var(--space-6);
+  padding: var(--space-5);
   border-radius: var(--radius-lg);
-  border: 1px solid;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
-  animation: fadeIn 200ms both;
+  gap: var(--space-3);
+  border: 1px solid;
 }
 
 .resultCorrect {
-  background: var(--color-success-bg);
+  background: var(--color-success-soft);
   border-color: var(--color-success);
 }
 
 .resultWrong {
-  background: var(--color-error-bg);
-  border-color: var(--color-error);
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger);
 }
 
 .resultVerdict {
-  font-family: var(--font-mono);
-  font-size: var(--text-lg);
-  letter-spacing: var(--tracking-wide);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
 }
-.resultCorrect .resultVerdict { color: var(--color-success); }
-.resultWrong   .resultVerdict { color: var(--color-error); }
 
 .resultDelta {
-  font-family: var(--font-mono);
-  font-size: var(--text-base);
-  color: var(--color-success);
+  font-size: var(--font-size-base);
 }
 
 .resultStats {
   display: flex;
-  gap: var(--sp-5);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
 
 .nextBtn {
   align-self: flex-start;
-  padding: var(--sp-2) var(--sp-6);
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
   border: none;
-  border-radius: var(--radius-md);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  letter-spacing: var(--tracking-wide);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-size: var(--font-size-base);
   cursor: pointer;
-  transition: background var(--t-fast);
-}
-.nextBtn:hover { background: var(--color-accent-hover); }
-
-/* ── Error ────────────────────────────────────────────── */
-.errorBox {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
+  transition: background var(--transition-fast),
+              transform var(--transition-fast);
 }
 
-.errorMsg {
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--color-error);
+.nextBtn:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
 }
 
-.retryBtn {
-  align-self: flex-start;
-  padding: var(--sp-2) var(--sp-5);
-  background: transparent;
-  border: 1px solid var(--color-error);
-  border-radius: var(--radius-md);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--color-error);
-  cursor: pointer;
-  transition: background var(--t-fast);
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: var(--breakpoint-sm)) {
+  .main {
+    padding: var(--space-6);
+  }
+
+  .hud {
+    gap: var(--space-4);
+  }
+
+  .prompt {
+    font-size: var(--font-size-base);
+  }
 }
-.retryBtn:hover { background: var(--color-error-bg); }

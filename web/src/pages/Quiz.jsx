@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import { useTheme } from "../hooks/useTheme";
 import styles from "./Quiz.module.css";
 
 // const BASE_URL = process.env.REACT_APP_BACKEND_URL;
@@ -9,6 +10,8 @@ const BASE_URL = window.RUNTIME_CONFIG.BACKEND_URL;
 
 export function Quiz() {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+
 
   const [question, setQuestion]     = useState(null);
   const [selected, setSelected]     = useState(null);
@@ -74,6 +77,14 @@ export function Quiz() {
 
   return (
     <div className={styles.page}>
+      <button
+  type="button"
+  onClick={toggleTheme}
+  className={styles.themeToggle}
+>
+  {theme === "dark" ? " Light" : "Dark"}
+</button>
+
 
       {/* ── HUD ── */}
       <div className={styles.hud}>

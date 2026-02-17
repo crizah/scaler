@@ -1,12 +1,16 @@
-// src/pages/Home.jsx
+
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from "../hooks/useTheme";
+
 import styles from './Home.module.css'
 
 export function Home() {
   const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+  const { theme, toggleTheme } = useTheme();
+
 
   const [username, setUsername]   = useState('')
   const [mode, setMode]           = useState('register')
@@ -37,6 +41,14 @@ export function Home() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
+        <button
+  type="button"
+  onClick={toggleTheme}
+  className={styles.themeToggle}
+>
+  {theme === "dark" ? "Light" : "Dark"}
+</button>
+
 
         <h1 className={styles.title}>QUIZOS</h1>
 
