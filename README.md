@@ -1,5 +1,4 @@
-# run
-
+### run
 ---
 
 please update .env.example before running
@@ -10,13 +9,13 @@ cd scaler
 cp .env.example .env
 docker compose up --build
 ```
-# video**
+### video
 
 ---
 
 https://github.com/user-attachments/assets/39c4f8c1-e17e-4d45-8571-aa784f09de0e
 
-# stack
+### stack
 
 ---
 
@@ -25,7 +24,7 @@ https://github.com/user-attachments/assets/39c4f8c1-e17e-4d45-8571-aa784f09de0e
 * database is mongodb
 * caching of user state is done with redis
 
-# algorithm
+### algorithm
 
 ---
 
@@ -47,7 +46,7 @@ scoreDelta  = base * multiplier
 ```
 
 
-# data model
+### data model
 
 ---
 
@@ -113,7 +112,7 @@ type AnswerLog struct {
 has an index at ikey for faster search
 ```
 
-# api structure
+### api structure
 
 ---
 
@@ -152,13 +151,13 @@ Response: top 5 users by max streak (rank, username, value, currentUser)
 ```
 
 
-# real time
+### real time
 
 ---
 
 * updates to leaderboard, score and  streaks is done in real time
 
-# edge case handeling
+### edge case handeling
 
 ---
 
@@ -167,7 +166,7 @@ Response: top 5 users by max streak (rank, username, value, currentUser)
 * duplicate submissions dont update streak because of a check with the answer log (idempotency)
 
 
-# docker
+### docker
 
 ---
 
