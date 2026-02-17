@@ -23,7 +23,7 @@ func (s *Server) getUserState(username string) (*models.UserState, error) {
 	defer cancel()
 	var result models.UserState
 
-	err := s.CollUsers.FindOne(ctx, bson.M{"_id": username}).Decode(&result)
+	err := s.CollUserState.FindOne(ctx, bson.M{"_id": username}).Decode(&result)
 
 	if err == mongo.ErrNoDocuments {
 		return nil, errors.New(auth.USER_NOT_FOUND)
@@ -41,12 +41,14 @@ func (s *Server) GetQuestions(diff int) (*[]models.Question, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := s.CollQuestions.Find(ctx, diff)
+	cursor, err := s.CollQuestions.Find(ctx, bson.M{
+		"difficulty": diff,
+	})
 	if err != nil {
 		return nil, err
 	}
-	if err := cursor.All(ctx, &questions); err != nil || len(questions) == 0 {
-		return nil, errors.New(NO_QUESTIONS)
+	if err := cursor.All(ctx, &questions); err != nil {
+		return nil, err
 	}
 
 	return &questions, nil
@@ -75,7 +77,7 @@ func (s *Server) GetQuestions(diff int) (*[]models.Question, error) {
 
 // }
 
-func (s *Server) updateUserState(username string, newState models.UserState, expectedVersion int64) error {
+func (s *Server) updateUserState(username string, newState models.UserState, expectedVersion int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

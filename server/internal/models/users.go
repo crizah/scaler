@@ -14,7 +14,7 @@ type UserState struct {
 	TotalCorrect      float64   `bson:"totalCorrect"        json:"totalCorrect"`
 	LastQuestionID    string    `bson:"lastQuestionId"    json:"lastQuestionId"`
 	LastAnswerAt      time.Time `bson:"lastAnswerAt"      json:"lastAnswerAt"`
-	StateVersion      int64     `bson:"stateVersion"      json:"stateVersion"`
+	StateVersion      int       `bson:"stateVersion"      json:"stateVersion"`
 	// Adaptive algorithm state
 	CorrectWindow   []bool  `bson:"correctWindow"     json:"correctWindow"` // rolling 5-answer window
 	MomentumScore   float64 `bson:"momentumScore"     json:"momentumScore"` // ping-pong stabilizer

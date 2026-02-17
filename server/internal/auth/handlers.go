@@ -48,9 +48,9 @@ func (s *Server) RegisterUser(c *gin.Context) {
 		Streak:            0,
 		MaxStreak:         0,
 		TotalScore:        0,
-		// StateVersion:      1,
-		// CorrectWindow:     []bool{},
-		// MomentumScore:     0.5, // neutral starting momentum
+		StateVersion:      1,
+		CorrectWindow:     []bool{},
+		MomentumScore:     0.5, // neutral starting momentum
 	}
 
 	err = s.PutIntoUserStateDB(state)

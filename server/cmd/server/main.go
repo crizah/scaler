@@ -24,6 +24,8 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(auth.CORSMiddleware())
+
 	v1 := r.Group("/v1")
 	v1.POST("/auth/register", authServer.RegisterUser) // works
 	v1.POST("/auth/session", authServer.Session)       // works

@@ -16,7 +16,7 @@ type NextQuestionRes struct {
 	Difficulty    int      `json:"difficulty"`
 	Prompt        string   `json:"prompt"`
 	Choices       []string `json:"choices"`
-	StateVersion  int64    `json:"stateVersion"`
+	StateVersion  int      `json:"stateVersion"`
 	CurrentScore  float64  `json:"currentScore"`
 	CurrentStreak int      `json:"currentStreak"`
 }
@@ -24,7 +24,7 @@ type NextQuestionRes struct {
 type SubmitAnswerReq struct {
 	QuestionID           string `json:"questionId"         binding:"required"`
 	Answer               string `json:"answer"             binding:"required"`
-	StateVersion         int64  `json:"stateVersion"       binding:"required"`
+	StateVersion         int    `json:"stateVersion" binding:"required"`
 	AnswerIdempotencyKey string `json:"answerIdempotencyKey" binding:"required"`
 }
 
@@ -34,7 +34,7 @@ type SubmitAnswerRes struct {
 	NewStreak             int     `json:"newStreak"`
 	ScoreDelta            float64 `json:"scoreDelta"`
 	TotalScore            float64 `json:"totalScore"`
-	StateVersion          int64   `json:"stateVersion"`
+	StateVersion          int     `json:"stateVersion"`
 	LeaderboardRankScore  int     `json:"leaderboardRankScore"`
 	LeaderboardRankStreak int     `json:"leaderboardRankStreak"`
 }
@@ -45,7 +45,7 @@ func (s *Server) HandleNextQuestion(c *gin.Context) {
 	// get the users state
 	state, err := s.getUserState(username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load state"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load state " + err.Error()})
 		return
 	}
 
@@ -53,13 +53,13 @@ func (s *Server) HandleNextQuestion(c *gin.Context) {
 	diff := state.CurrentDifficulty
 	questions, err := s.GetQuestions(diff)
 	if err != nil {
-		if err.Error() == NO_QUESTIONS {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "no questions rn"})
-			return
+		// if err.Error() == NO_QUESTIONS {
+		// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "no questions rn"})
+		// 	return
 
-		}
+		// }
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cant get questions"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cant get questions " + err.Error()})
 		return
 	}
 
@@ -116,6 +116,7 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 		return
 	}
 	if state.StateVersion != req.StateVersion {
+
 		c.JSON(http.StatusConflict, gin.H{"error": "stale state"})
 		return
 	}
