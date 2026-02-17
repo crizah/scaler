@@ -24,7 +24,7 @@ type LeaderboardRes struct {
 
 func (s *Server) GetScoreLeaderboard(c *gin.Context) {
 	username := c.GetString("username")
-
+	key := "user_state:" + username
 	// top 5
 	var states []models.UserState
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -56,12 +56,33 @@ func (s *Server) GetScoreLeaderboard(c *gin.Context) {
 		return
 
 	}
-	state, err := s.getUserState(username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get state " + err.Error()})
-		return
+	// get state from redis
+	// try cache
+	var state *models.UserState
 
+	cachedState, err := s.GetCachedState(c.Request.Context(), key)
+	if err == nil && cachedState != nil {
+		state = cachedState
+	} else {
+		// no cache, load from db
+		dbState, err := s.getUserState(username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load state " + err.Error()})
+			return
+		}
+
+		state = dbState
+
+		// cache it
+		_ = s.CacheState(c.Request.Context(), *state, key)
 	}
+
+	// state, err := s.getUserState(username)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get state " + err.Error()})
+	// 	return
+
+	// }
 
 	c.JSON(http.StatusOK, LeaderboardRes{
 		Entries: entries,
@@ -107,12 +128,34 @@ func (s *Server) GetStreakLeaderboard(c *gin.Context) {
 
 	}
 
-	state, err := s.getUserState(username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user state " + err.Error()})
-		return
+	// get state from redis
+	key := "user_state:" + username
 
+	var state *models.UserState
+
+	cachedState, err := s.GetCachedState(c.Request.Context(), key)
+	if err == nil && cachedState != nil {
+		state = cachedState
+	} else {
+		// no cache, load from db
+		dbState, err := s.getUserState(username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load state " + err.Error()})
+			return
+		}
+
+		state = dbState
+
+		// cache it
+		_ = s.CacheState(c.Request.Context(), *state, key)
 	}
+
+	// state, err := s.getUserState(username)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user state " + err.Error()})
+	// 	return
+
+	// }
 
 	c.JSON(http.StatusOK, LeaderboardRes{
 		Entries: entries,

@@ -2,6 +2,7 @@ package quiz
 
 import (
 	"context"
+	"log"
 	"math/rand"
 	"net/http"
 	"server/internal/models"
@@ -44,10 +45,25 @@ func (s *Server) HandleNextQuestion(c *gin.Context) {
 	username := c.GetString("username")
 
 	// get the users state
-	state, err := s.getUserState(username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load state " + err.Error()})
-		return
+	key := "user_state:" + username
+	// try cache
+	var state *models.UserState
+
+	cachedState, err := s.GetCachedState(c.Request.Context(), key)
+	if err == nil && cachedState != nil {
+		state = cachedState
+	} else {
+		// no cache, load from db
+		dbState, err := s.getUserState(username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load state " + err.Error()})
+			return
+		}
+
+		state = dbState
+
+		// cache it
+		_ = s.CacheState(c.Request.Context(), *state, key)
 	}
 
 	// get all the questions at current difficulty
@@ -97,10 +113,10 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 		}
 		c.JSON(http.StatusOK, SubmitAnswerRes{
 			Correct:               existing.Correct,
-			NewDifficulty:         0,
+			NewDifficulty:         existing.Difficulty,
 			NewStreak:             existing.StreakAtAnswer,
 			ScoreDelta:            existing.ScoreDelta,
-			TotalScore:            0,
+			TotalScore:            existing.ScoreDelta,
 			StateVersion:          req.StateVersion,
 			LeaderboardRankScore:  rankScore,
 			LeaderboardRankStreak: rankStreak,
@@ -108,12 +124,29 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 		return
 	}
 
-	// versin check and get state
-	state, err := s.getUserState(username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load state"})
-		return
+	// get state from redis
+	var state *models.UserState
+	key := "user_state:" + username
+
+	cachedState, err := s.GetCachedState(c.Request.Context(), key)
+	if err == nil && cachedState != nil {
+		state = cachedState
+	} else {
+		// no cache, load from db
+		dbState, err := s.getUserState(username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load state " + err.Error()})
+			return
+		}
+
+		state = dbState
+
+		// cache it
+		_ = s.CacheState(c.Request.Context(), *state, key)
 	}
+
+	// versin check and get state
+
 	if state.StateVersion != req.StateVersion {
 
 		c.JSON(http.StatusConflict, gin.H{"error": "stale state"})
@@ -131,6 +164,7 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 	correct := req.Answer == q.CorrectAnswer
 
 	// new difficulty + updated state
+
 	newState := applyAdaptiveAlgorithm(*state, correct)
 
 	//score delta
@@ -145,6 +179,7 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 	}
 
 	// update the state in db
+
 	err = s.updateUserState(username, newState, state.StateVersion)
 	if err != nil {
 		if err.Error() == VERSION_CONFLICT {
@@ -153,6 +188,12 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save state"})
 		return
+	}
+	// update state in redis
+	err = s.CacheState(c.Request.Context(), newState, key)
+	if err != nil {
+		log.Println("cache error:", err)
+		// dontr return tho
 	}
 
 	// // answers log

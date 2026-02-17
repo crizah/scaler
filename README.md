@@ -14,28 +14,25 @@ https://github.com/user-attachments/assets/39c4f8c1-e17e-4d45-8571-aa784f09de0e
 * the backend is written in golang (gin framework)
 * frontend in react.js (has responsive design and light and dark mode)
 * database is mongodb
+* caching of user state is done with redis
 
 **algorithm**
-* need 2 consecutive correct to go up (hysteresis)
-* 1 wrong is enough to go down
 
-* difficulty is between 1 and 10
+* difficulty ranges from 1 to 10
+* 2 consecutive correct answers required to increase difficulty (hysteresis)
+* 1 wrong answer decreases difficulty
+* last 5 answers stored in CorrectWindow
+* MomentumScore = (correct answers in window) / 5
+* difficulty increases only if:
+  - ConsecutiveUp ≥ 2
+  - MomentumScore ≥ 0.6 (60%)
+* requiring 2 consecutive correct answers prevents ping-pong oscillation
+* score is calculated only for correct answers
 
-* The system stores the last 5 answers in CorrectWindow.
-
-* MomentumScore = (numbers correct in window) / (window size)
-* 60% correct in window required to increase difficulty
-* to increase diifculty, ConsecutiveUp >= 2 AND MomentumScore >= 0.6 ()
-
-
-
-* ping pong oscillation is prevented by requiring 2 concequitive correct answers
-* score is only calculated for correct answers 
-``` 
+```
 base        = difficulty * 10
 multiplier  = min(1 + (streak * 0.1), 5)
 scoreDelta  = base * multiplier
-
 ```
 
 

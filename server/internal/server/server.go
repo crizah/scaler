@@ -6,7 +6,9 @@ import (
 	"server/internal/models"
 	"time"
 
+	"github.com/go-redis/cache/v9"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -19,6 +21,7 @@ type Server struct {
 	CollUserState *mongo.Collection
 	CollQuestions *mongo.Collection
 	CollAnswerLog *mongo.Collection
+	StateCache    *cache.Cache
 }
 
 func InitialiseServer() (*Server, error) {
@@ -57,7 +60,21 @@ func InitialiseServer() (*Server, error) {
 		Options: options.Index().SetUnique(true),
 	})
 
-	return &Server{MongoClient: client, CollUsers: u, CollUserState: p, CollQuestions: q, JwtSecret: token, CollAnswerLog: a}, nil
+	ring := redis.NewRing(&redis.RingOptions{
+		Addrs: map[string]string{
+			"server1": ":6379",
+			"server2": ":6380",
+		},
+	})
+
+	mycache := cache.New(&cache.Options{
+		Redis:      ring,
+		LocalCache: cache.NewTinyLFU(1000, time.Minute),
+	})
+
+	return &Server{MongoClient: client, CollUsers: u, CollUserState: p,
+		CollQuestions: q, JwtSecret: token,
+		CollAnswerLog: a, StateCache: mycache}, nil
 }
 
 func (s *Server) PopulateQuestions() {
@@ -156,5 +173,33 @@ func (s *Server) GenerateJWT(username string) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(s.JwtSecret)
+
+}
+
+func (s *Server) CacheState(ctx context.Context, state models.UserState, key string) error {
+
+	if err := s.StateCache.Set(&cache.Item{
+		Ctx:   ctx,
+		Key:   key,
+		Value: state,
+		TTL:   time.Hour,
+	}); err != nil {
+		return err
+	}
+	return nil
+
+}
+func (s *Server) UpdateCache(state models.UserState, key string) {
+
+}
+
+func (s *Server) GetCachedState(ctx context.Context, key string) (*models.UserState, error) {
+	var wanted models.UserState
+
+	if err := s.StateCache.Get(ctx, key, &wanted); err != nil {
+		return nil, err
+	}
+
+	return &wanted, nil
 
 }
