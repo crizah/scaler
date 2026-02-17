@@ -6,10 +6,10 @@ services:
     ports:
       - "8081:8081"
     environment:
-      ENV: dev
-      CLIENT_IP: http://localhost:3000
-      MONGODB_URI: 
-      JWT_SECRET: 
+      ENV: ${ENV}
+      CLIENT_IP: ${CLIENT_IP}
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET: ${JWT_SECRET} 
   frontend:
     build: ./web
     ports:
