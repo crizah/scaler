@@ -176,7 +176,12 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 	s.updateLeaderboards(username, newState)
 
 	// get rank
-	rankScore, rankStreak := s.getLeaderboardRanks(username)
+	rankScore, rankStreak, err := s.getLeaderboardRanks(username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get rank"})
+		return
+
+	}
 
 	c.JSON(http.StatusOK, SubmitAnswerRes{
 		Correct:               correct,
@@ -189,59 +194,6 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 		LeaderboardRankStreak: rankStreak,
 	})
 }
-
-// func (s *Server) GetMetrics(c *gin.Context) {
-// 	username := c.GetString("username")
-
-// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-// 	defer cancel()
-
-// 	state, err := s.getUserState(username)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load state"})
-// 		return
-// 	}
-
-// 	// Pull last N answers for recentPerformance + difficultyHistogram
-// 	opts := options.Find().
-// 		SetSort(bson.D{{Key: "answeredAt", Value: -1}}).
-// 		SetLimit(recentWindowSize)
-
-// 	cursor, err := s.collAnswerLog.Find(ctx, bson.M{"username": username}, opts)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch logs"})
-// 		return
-// 	}
-
-// 	var logs []AnswerLog
-// 	cursor.All(ctx, &logs)
-
-// 	// Build recent performance slice + difficulty histogram
-// 	recent := make([]RecentAnswer, 0, len(logs))
-// 	histogram := make(map[string]int)
-
-// 	for _, l := range logs {
-// 		recent = append(recent, RecentAnswer{
-// 			QuestionID: l.QuestionID,
-// 			Correct:    l.Correct,
-// 			Difficulty: l.Difficulty,
-// 			ScoreDelta: l.ScoreDelta,
-// 			AnsweredAt: l.AnsweredAt.Format(time.RFC3339),
-// 		})
-// 		key := difficultyLabel(l.Difficulty)
-// 		histogram[key]++
-// 	}
-
-// 	c.JSON(http.StatusOK, MetricsRes{
-// 		CurrentDifficulty:   state.CurrentDifficulty,
-// 		Streak:              state.Streak,
-// 		MaxStreak:           state.MaxStreak,
-// 		TotalScore:          state.TotalScore,
-// 		Accuracy:            state.Accuracy,
-// 		DifficultyHistogram: histogram,
-// 		RecentPerformance:   recent,
-// 	})
-// }
 
 func pickQuestion(q []models.Question, last string) models.Question {
 	// Filter out the last asked question to avoid immediate repeats

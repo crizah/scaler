@@ -5,6 +5,8 @@ import axios from "axios";
 import { useTheme } from "../hooks/useTheme";
 import styles from "./Quiz.module.css";
 
+import { Leaderboard } from "./Leaderboard";
+
 // const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 const BASE_URL = window.RUNTIME_CONFIG.BACKEND_URL;
 
@@ -75,99 +77,92 @@ export function Quiz() {
     }
   };
 
-  return (
-    <div className={styles.page}>
-      <button
-  type="button"
-  onClick={toggleTheme}
-  className={styles.themeToggle}
->
-  {theme === "dark" ? " Light" : "Dark"}
-</button>
 
 
-      {/* ── HUD ── */}
-      <div className={styles.hud}>
-        <span className={styles.hudItem}>
-          <span className={styles.hudLabel}>SCORE</span>
-          <span className={styles.hudValue}>{stats.score.toLocaleString()}</span>
-        </span>
-        <span className={styles.hudItem}>
-          <span className={styles.hudLabel}>STREAK</span>
-          <span className={styles.hudValue}>{stats.streak}×</span>
-        </span>
-        {question && (
+// replace the outer return with this
+return (
+  <div className={styles.page}>
+    <button type="button" onClick={toggleTheme} className={styles.themeToggle}>
+      {theme === "dark" ? "Light" : "Dark"}
+    </button>
+
+    <div className={styles.layout}>
+
+      {/* left: quiz */}
+      <div className={styles.quizCol}>
+        <div className={styles.hud}>
           <span className={styles.hudItem}>
-            <span className={styles.hudLabel}>LEVEL</span>
-            <span className={styles.hudValue}>{question.difficulty}</span>
+            <span className={styles.hudLabel}>SCORE</span>
+            <span className={styles.hudValue}>{stats.score.toLocaleString()}</span>
           </span>
-        )}
-      </div>
-
-      {/* ── Main ── */}
-      <div className={styles.main}>
-
-        {phase === "loading" && (
-          <p className={styles.status}>loading question...</p>
-        )}
-
-        {phase === "error" && (
-          <div className={styles.errorBox}>
-            <p className={styles.errorMsg}>{error}</p>
-            <button className={styles.retryBtn} onClick={fetchQuestion}>retry</button>
-          </div>
-        )}
-
-        {(phase === "answering" || phase === "submitting" || phase === "result") && question && (
-          <>
-            <p className={styles.prompt}>{question.prompt}</p>
-
-            <ul className={styles.choices}>
-              {question.choices.map((choice, i) => {
-                let state = "idle";
-                if (selected === choice) {
-                  state = result ? (result.correct ? "correct" : "wrong") : "selected";
-                }
-                return (
-                  <li key={choice}>
-                    <button
-                      className={`${styles.choice} ${styles[state]}`}
-                      onClick={() => submitAnswer(choice)}
-                      disabled={phase !== "answering"}
-                    >
-                      <span className={styles.choiceLetter}>
-                        {String.fromCharCode(65 + i)}
-                      </span>
-                      {choice}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </>
-        )}
-
-        {/* ── Result banner ── */}
-        {phase === "result" && result && (
-          <div className={`${styles.result} ${result.correct ? styles.resultCorrect : styles.resultWrong}`}>
-            <span className={styles.resultVerdict}>
-              {result.correct ? "✓ Correct" : "✗ Wrong"}
+          <span className={styles.hudItem}>
+            <span className={styles.hudLabel}>STREAK</span>
+            <span className={styles.hudValue}>{stats.streak}×</span>
+          </span>
+          {question && (
+            <span className={styles.hudItem}>
+              <span className={styles.hudLabel}>LEVEL</span>
+              <span className={styles.hudValue}>{question.difficulty}</span>
             </span>
-            {result.correct && (
-              <span className={styles.resultDelta}>+{result.scoreDelta} pts</span>
-            )}
-            <div className={styles.resultStats}>
-              <span>streak {result.newStreak}×</span>
-              <span>rank #{result.leaderboardRankScore}</span>
-              <span>lvl {result.newDifficulty}</span>
-            </div>
-            <button className={styles.nextBtn} onClick={fetchQuestion}>
-              Next →
-            </button>
-          </div>
-        )}
+          )}
+        </div>
 
+        <div className={styles.main}>
+          {phase === "loading" && <p className={styles.status}>loading question...</p>}
+
+          {phase === "error" && (
+            <div className={styles.errorBox}>
+              <p className={styles.errorMsg}>{error}</p>
+              <button className={styles.retryBtn} onClick={fetchQuestion}>retry</button>
+            </div>
+          )}
+
+          {(phase === "answering" || phase === "submitting" || phase === "result") && question && (
+            <>
+              <p className={styles.prompt}>{question.prompt}</p>
+              <ul className={styles.choices}>
+                {question.choices.map((choice, i) => {
+                  let state = "idle";
+                  if (selected === choice) {
+                    state = result ? (result.correct ? "correct" : "wrong") : "selected";
+                  }
+                  return (
+                    <li key={choice}>
+                      <button
+                        className={`${styles.choice} ${styles[state]}`}
+                        onClick={() => submitAnswer(choice)}
+                        disabled={phase !== "answering"}
+                      >
+                        <span className={styles.choiceLetter}>{String.fromCharCode(65 + i)}</span>
+                        {choice}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+
+          {phase === "result" && result && (
+            <div className={`${styles.result} ${result.correct ? styles.resultCorrect : styles.resultWrong}`}>
+              <span className={styles.resultVerdict}>
+                {result.correct ? "✓ Correct" : "✗ Wrong"}
+              </span>
+              {result.correct && <span className={styles.resultDelta}>+{result.scoreDelta} pts</span>}
+              <div className={styles.resultStats}>
+                <span>streak {result.newStreak}×</span>
+                <span>rank #{result.leaderboardRankScore}</span>
+                <span>lvl {result.newDifficulty}</span>
+              </div>
+              <button className={styles.nextBtn} onClick={fetchQuestion}>Next →</button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* right: leaderboard */}
+      <Leaderboard currentUsername={user?.username} />
+
     </div>
-  );
-}
+  </div>
+);}

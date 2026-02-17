@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -41,6 +42,13 @@ func InitialiseServer() (*Server, error) {
 	u := client.Database("scaler").Collection("Users")
 	p := client.Database("scaler").Collection("user-state")
 	q := client.Database("scaler").Collection("questions")
+
+	p.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.D{{Key: "totalScore", Value: -1}},
+	})
+	p.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.D{{Key: "maxStreak", Value: -1}},
+	})
 
 	return &Server{MongoClient: client, CollUsers: u, CollUserState: p, CollQuestions: q, JwtSecret: token}, nil
 }

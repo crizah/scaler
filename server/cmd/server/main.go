@@ -33,10 +33,16 @@ func main() {
 	protected := v1.Group("/")
 	protected.Use(authServer.AuthMiddleware())
 	protected.GET("/quiz/next", quizServer.HandleNextQuestion) // working
-	protected.POST("/quiz/answer", quizServer.SubmitAnswer)    // does not work yet
+	protected.POST("/quiz/answer", quizServer.SubmitAnswer)    // working
+	protected.GET("/leaderboard/score", quizServer.GetScoreLeaderboard)
+	protected.GET("/leaderboard/streak", quizServer.GetStreakLeaderboard)
+
 	// protected.GET("/quiz/metrics", quizServer.GetMetrics)
 	// protected.GET("/leaderboard/score", quizServer.LeaderboardScore)
 	// protected.GET("/leaderboard/streak", quizServer.LeaderboardStreak)
 
 	r.Run(":8081")
 }
+
+// have to do indempotency, answer log
+// redis caching

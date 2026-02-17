@@ -118,13 +118,13 @@ func (s *Server) updateLeaderboards(username string, state models.UserState) {
 
 // getLeaderboardRanks returns (scoreRank, streakRank) for the given username
 // Rank = count of users with strictly higher value + 1
-func (s *Server) getLeaderboardRanks(username string) (int, int) {
+func (s *Server) getLeaderboardRanks(username string) (int, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	state, err := s.getUserState(username)
 	if err != nil {
-		return 0, 0
+		return 0, 0, err
 	}
 
 	scoreRank, _ := s.CollUserState.CountDocuments(ctx, bson.M{
@@ -134,5 +134,5 @@ func (s *Server) getLeaderboardRanks(username string) (int, int) {
 		"maxStreak": bson.M{"$gt": state.MaxStreak},
 	})
 
-	return int(scoreRank) + 1, int(streakRank) + 1
+	return int(scoreRank) + 1, int(streakRank) + 1, nil
 }
