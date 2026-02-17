@@ -1,4 +1,0 @@
-package questions
-
-// this one is for answers
-// id, userId, questionId, difficulty, answer, correct, scoreDelta, streakAtAnswer, answeredAt

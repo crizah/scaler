@@ -16,11 +16,9 @@ type Server struct {
 	CollUsers     *mongo.Collection
 	CollUserState *mongo.Collection
 	CollQuestions *mongo.Collection
-	CollAnswerLog *mongo.Collection
 }
 
 func InitialiseServer() (*Server, error) {
-	// NEED TO GENERATE AND PUT A JWT TOKEN HERE
 
 	uri := os.Getenv("MONGODB_URI")
 
@@ -42,10 +40,8 @@ func InitialiseServer() (*Server, error) {
 	u := client.Database("scaler").Collection("Users")
 	p := client.Database("scaler").Collection("user-state")
 	q := client.Database("scaler").Collection("questions")
-	a := client.Database("scaler").Collection("answer-logs")
 
-	return &Server{MongoClient: client, CollUsers: u, CollUserState: p, CollQuestions: q, JwtSecret: token,
-		CollAnswerLog: a}, nil
+	return &Server{MongoClient: client, CollUsers: u, CollUserState: p, CollQuestions: q, JwtSecret: token}, nil
 }
 
 func (s *Server) GenerateJWT(username string) (string, error) {

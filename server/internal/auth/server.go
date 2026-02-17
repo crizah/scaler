@@ -3,5 +3,9 @@ package auth
 import "server/internal/server"
 
 type Server struct {
-	*server.Server // embeds all fields
+	*server.Server
+}
+
+func NewAuthServer(s *server.Server) *Server {
+	return &Server{s}
 }
