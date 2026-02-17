@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -53,11 +54,6 @@ func (s *Server) HandleNextQuestion(c *gin.Context) {
 	diff := state.CurrentDifficulty
 	questions, err := s.GetQuestions(diff)
 	if err != nil {
-		// if err.Error() == NO_QUESTIONS {
-		// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "no questions rn"})
-		// 	return
-
-		// }
 
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cant get questions " + err.Error()})
 		return
@@ -91,23 +87,26 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 	defer cancel()
 
 	// // reject duplicate submissions
-	// var existing models.AnswerLog
-	// err := s.CollAnswerLog.FindOne(ctx, bson.M{"idempotencyKey": req.AnswerIdempotencyKey}).Decode(&existing)
-	// if err == nil {
-	// 	// Already processed — return the stored result idempotently
-	// 	rankScore, rankStreak := s.getLeaderboardRanks(username)
-	// 	c.JSON(http.StatusOK, SubmitAnswerRes{
-	// 		Correct:               existing.Correct,
-	// 		NewDifficulty:         0, // caller should use stateVersion to re-fetch
-	// 		NewStreak:             existing.StreakAtAnswer,
-	// 		ScoreDelta:            existing.ScoreDelta,
-	// 		TotalScore:            0,
-	// 		StateVersion:          req.StateVersion,
-	// 		LeaderboardRankScore:  rankScore,
-	// 		LeaderboardRankStreak: rankStreak,
-	// 	})
-	// 	return
-	// }
+	var existing models.AnswerLog
+	err := s.CollAnswerLog.FindOne(ctx, bson.M{"idempotencyKey": req.AnswerIdempotencyKey}).Decode(&existing)
+	if err == nil {
+		// Already processed — return the stored result idempotently
+		rankScore, rankStreak, err := s.getLeaderboardRanks(username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": " coulend get leaderboard " + err.Error()})
+		}
+		c.JSON(http.StatusOK, SubmitAnswerRes{
+			Correct:               existing.Correct,
+			NewDifficulty:         0,
+			NewStreak:             existing.StreakAtAnswer,
+			ScoreDelta:            existing.ScoreDelta,
+			TotalScore:            0,
+			StateVersion:          req.StateVersion,
+			LeaderboardRankScore:  rankScore,
+			LeaderboardRankStreak: rankStreak,
+		})
+		return
+	}
 
 	// versin check and get state
 	state, err := s.getUserState(username)
@@ -157,20 +156,20 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 	}
 
 	// // answers log
-	// log := models.AnswerLog{
-	// 	Id:             uuid.NewString(),
-	// 	Username:       username,
-	// 	QuestionID:     req.QuestionID,
-	// 	Difficulty:     q.Difficulty,
-	// 	Answer:         req.Answer,
-	// 	Correct:        correct,
-	// 	ScoreDelta:     scoreDelta,
-	// 	StreakAtAnswer: newState.Streak,
-	// 	IdempotencyKey: req.AnswerIdempotencyKey,
-	// 	AnsweredAt:     time.Now().UTC(),
-	// }
+	log := models.AnswerLog{
+		Id:             uuid.NewString(),
+		Username:       username,
+		QuestionID:     req.QuestionID,
+		Difficulty:     q.Difficulty,
+		Answer:         req.Answer,
+		Correct:        correct,
+		ScoreDelta:     scoreDelta,
+		StreakAtAnswer: newState.Streak,
+		IdempotencyKey: req.AnswerIdempotencyKey,
+		AnsweredAt:     time.Now().UTC(),
+	}
 
-	// s.CollAnswerLog.InsertOne(ctx, log) // write to db
+	s.CollAnswerLog.InsertOne(ctx, log) // write to db
 
 	//update leaderboa5rd
 	s.updateLeaderboards(username, newState)

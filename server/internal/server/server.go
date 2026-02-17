@@ -18,6 +18,7 @@ type Server struct {
 	CollUsers     *mongo.Collection
 	CollUserState *mongo.Collection
 	CollQuestions *mongo.Collection
+	CollAnswerLog *mongo.Collection
 }
 
 func InitialiseServer() (*Server, error) {
@@ -42,6 +43,7 @@ func InitialiseServer() (*Server, error) {
 	u := client.Database("scaler").Collection("Users")
 	p := client.Database("scaler").Collection("user-state")
 	q := client.Database("scaler").Collection("questions")
+	a := client.Database("scaler").Collection("answer-logs")
 
 	p.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.D{{Key: "totalScore", Value: -1}},
@@ -50,7 +52,12 @@ func InitialiseServer() (*Server, error) {
 		Keys: bson.D{{Key: "maxStreak", Value: -1}},
 	})
 
-	return &Server{MongoClient: client, CollUsers: u, CollUserState: p, CollQuestions: q, JwtSecret: token}, nil
+	a.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "ikey", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	})
+
+	return &Server{MongoClient: client, CollUsers: u, CollUserState: p, CollQuestions: q, JwtSecret: token, CollAnswerLog: a}, nil
 }
 
 func (s *Server) PopulateQuestions() {

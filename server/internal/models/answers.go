@@ -1,16 +1,16 @@
 package models
 
-// type AnswerLog struct {
-// 	// WRITE THIS LATER
-// 	// id, userId, questionId, difficulty, answer, correct, scoreDelta, streakAtAnswer, answeredAt
+import "time"
 
-// 	Id         string `bson:"_id"            json:"questionId"`
-// 	Username   string `bson:"_id"            json:"userId"`
-// 	QuestionID string `bson:"questionId"            json:"questionId"`
-// 	Difficulty int    `bson:"difficulty"            json:"difficulty"`
-// 	Answer
-
-// 	Prompt            string   `bson:"prompt"            json:"prompt"`
-// 	Choices           []string `bson:"choices"            json:"choices"`
-// 	CorrectAnswerHash string   `bson:"correctans"            json:"correctans"`
-// }
+type AnswerLog struct {
+	Id             string    `bson:"_id"           json:"Id"`
+	Username       string    `bson:"username"            json:"username"`
+	QuestionID     string    `bson:"questionId"            json:"questionId"`
+	Difficulty     int       `bson:"difficulty"            json:"difficulty"`
+	Answer         string    `bson:"answer"            json:"answer"`
+	Correct        bool      `bson:"correct"            json:"correct"`
+	ScoreDelta     float64   `bson:"score"            json:"score"`
+	StreakAtAnswer int       `bson:"streak"            json:"streak"`
+	IdempotencyKey string    `bson:"ikey"            json:"ikey"`
+	AnsweredAt     time.Time `bson:"answeredAt"            json:"answeredAt"`
+}
