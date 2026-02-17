@@ -4,19 +4,20 @@ package quiz
 import "server/internal/models"
 
 const (
-	minDifficulty     = 1
-	maxDifficulty     = 10
-	correctStreakToUp = 2   // need 2 consecutive correct to go up (hysteresis)
-	wrongStreakToDown = 1   // 1 wrong is enough to go down
-	rollingWindowSize = 5   // last 5 answers for momentum
-	momentumThreshold = 0.6 // 60% correct in window required to increase difficulty
+	minDifficulty       = 1
+	maxDifficulty       = 10
+	correctStreakToUp   = 2   // need 2 consecutive correct to go up (hysteresis)
+	wrongStreakToDown   = 1   // 1 wrong is enough to go down
+	rollingWindowSize   = 5   // last 5 answers for momentum
+	momentumThreshold   = 0.6 // 60% correct in window required to increase difficulty
+	maxStreakMultiplier = 5
 )
 
 // applyAdaptiveAlgorithm returns a mutated copy of state — never modifies in place
 func applyAdaptiveAlgorithm(state models.UserState, correct bool) models.UserState {
 	s := state // copy
 
-	// ── 1. Update streak ──────────────────────────────────────────────────────
+	// update streak
 	if correct {
 		s.Streak++
 		s.ConsecutiveUp++
@@ -30,7 +31,7 @@ func applyAdaptiveAlgorithm(state models.UserState, correct bool) models.UserSta
 		s.ConsecutiveUp = 0
 	}
 
-	// ── 2. Update rolling window (last 5 answers) ─────────────────────────────
+	// rolling window
 	s.CorrectWindow = append(s.CorrectWindow, correct)
 	if len(s.CorrectWindow) > rollingWindowSize {
 		s.CorrectWindow = s.CorrectWindow[len(s.CorrectWindow)-rollingWindowSize:]
@@ -73,14 +74,14 @@ func applyAdaptiveAlgorithm(state models.UserState, correct bool) models.UserSta
 	return s
 }
 
-// calculateScore returns the score delta for a single answer
-//
-// Formula:
-//
-//	base      = difficulty * 10
-//	multiplier = min(1 + (streak * 0.1), maxStreakMultiplier)  → caps at 5x
-//	delta     = base * multiplier  (0 if wrong)
 func calculateScore(difficulty int, correct bool, streak int) float64 {
+	// calculateScore returns the score delta for a single answer
+	//
+	// Formula:
+	//
+	//	base      = difficulty * 10
+	//	multiplier = min(1 + (streak * 0.1), maxStreakMultiplier)  → caps at 5x
+	//	delta     = base * multiplier  (0 if wrong)
 	if !correct {
 		return 0
 	}

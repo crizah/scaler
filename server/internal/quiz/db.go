@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	NO_QUESTIONS = "no questions at this difficulty"
+	NO_QUESTIONS     = "no questions at this difficulty"
+	VERSION_CONFLICT = "version conflict"
 )
 
 func (s *Server) getUserState(username string) (*models.UserState, error) {
@@ -90,7 +91,7 @@ func (s *Server) updateUserState(username string, newState models.UserState, exp
 		return err
 	}
 	if result.MatchedCount == 0 {
-		return errors.New("version conflict")
+		return errors.New(VERSION_CONFLICT)
 	}
 	return nil
 }

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -91,24 +90,24 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// reject duplicate submissions
-	var existing models.AnswerLog
-	err := s.CollAnswerLog.FindOne(ctx, bson.M{"idempotencyKey": req.AnswerIdempotencyKey}).Decode(&existing)
-	if err == nil {
-		// Already processed — return the stored result idempotently
-		rankScore, rankStreak := s.getLeaderboardRanks(username)
-		c.JSON(http.StatusOK, SubmitAnswerRes{
-			Correct:               existing.Correct,
-			NewDifficulty:         0, // caller should use stateVersion to re-fetch
-			NewStreak:             existing.StreakAtAnswer,
-			ScoreDelta:            existing.ScoreDelta,
-			TotalScore:            0,
-			StateVersion:          req.StateVersion,
-			LeaderboardRankScore:  rankScore,
-			LeaderboardRankStreak: rankStreak,
-		})
-		return
-	}
+	// // reject duplicate submissions
+	// var existing models.AnswerLog
+	// err := s.CollAnswerLog.FindOne(ctx, bson.M{"idempotencyKey": req.AnswerIdempotencyKey}).Decode(&existing)
+	// if err == nil {
+	// 	// Already processed — return the stored result idempotently
+	// 	rankScore, rankStreak := s.getLeaderboardRanks(username)
+	// 	c.JSON(http.StatusOK, SubmitAnswerRes{
+	// 		Correct:               existing.Correct,
+	// 		NewDifficulty:         0, // caller should use stateVersion to re-fetch
+	// 		NewStreak:             existing.StreakAtAnswer,
+	// 		ScoreDelta:            existing.ScoreDelta,
+	// 		TotalScore:            0,
+	// 		StateVersion:          req.StateVersion,
+	// 		LeaderboardRankScore:  rankScore,
+	// 		LeaderboardRankStreak: rankStreak,
+	// 	})
+	// 	return
+	// }
 
 	// versin check and get state
 	state, err := s.getUserState(username)
@@ -144,36 +143,33 @@ func (s *Server) SubmitAnswer(c *gin.Context) {
 	if correct {
 		newState.TotalCorrect++
 	}
-	if newState.TotalAnswered > 0 {
-		newState.TotalScore = float64(newState.TotalCorrect) / float64(newState.TotalAnswered)
-	}
 
-	// 7. Persist updated state (optimistic concurrency — only update if version matches)
+	// update the state in db
 	err = s.updateUserState(username, newState, state.StateVersion)
 	if err != nil {
-		if err.Error() == "version conflict" {
-			c.JSON(http.StatusConflict, gin.H{"error": "concurrent update — fetch /next again"})
+		if err.Error() == VERSION_CONFLICT {
+			c.JSON(http.StatusConflict, gin.H{"error": "version conflict"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save state"})
 		return
 	}
 
-	// answers log
-	log := models.AnswerLog{
-		Id:             uuid.NewString(),
-		Username:       username,
-		QuestionID:     req.QuestionID,
-		Difficulty:     q.Difficulty,
-		Answer:         req.Answer,
-		Correct:        correct,
-		ScoreDelta:     scoreDelta,
-		StreakAtAnswer: newState.Streak,
-		IdempotencyKey: req.AnswerIdempotencyKey,
-		AnsweredAt:     time.Now().UTC(),
-	}
+	// // answers log
+	// log := models.AnswerLog{
+	// 	Id:             uuid.NewString(),
+	// 	Username:       username,
+	// 	QuestionID:     req.QuestionID,
+	// 	Difficulty:     q.Difficulty,
+	// 	Answer:         req.Answer,
+	// 	Correct:        correct,
+	// 	ScoreDelta:     scoreDelta,
+	// 	StreakAtAnswer: newState.Streak,
+	// 	IdempotencyKey: req.AnswerIdempotencyKey,
+	// 	AnsweredAt:     time.Now().UTC(),
+	// }
 
-	s.CollAnswerLog.InsertOne(ctx, log) // write to db
+	// s.CollAnswerLog.InsertOne(ctx, log) // write to db
 
 	//update leaderboa5rd
 	s.updateLeaderboards(username, newState)
@@ -257,6 +253,6 @@ func pickQuestion(q []models.Question, last string) models.Question {
 	if len(filtered) == 0 {
 		filtered = q
 	}
-	return filtered[rand.Intn(len(filtered))]
+	return filtered[rand.Intn(len(filtered))] // return a random guy
 
 }
