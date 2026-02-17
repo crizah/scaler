@@ -1,22 +1,33 @@
-**run**
+# run
+
+---
+
 please update .env.example before running
+
 ```
 git clone https://github.com/crizah/scaler.git
 cd scaler
 cp .env.example .env
 docker compose up --build
 ```
-**video**
+# video**
+
+---
+
 https://github.com/user-attachments/assets/39c4f8c1-e17e-4d45-8571-aa784f09de0e
 
-**stack**
+# stack
+
+---
 
 * the backend is written in golang (gin framework)
 * frontend in react.js (has responsive design and light and dark mode)
 * database is mongodb
 * caching of user state is done with redis
 
-**algorithm**
+# algorithm
+
+---
 
 * difficulty ranges from 1 to 10
 * 2 consecutive correct answers required to increase difficulty (hysteresis)
@@ -36,7 +47,10 @@ scoreDelta  = base * multiplier
 ```
 
 
-**data model**
+# data model
+
+---
+
 can be found in ./server/models
 ```
 type Users struct {
@@ -99,9 +113,14 @@ type AnswerLog struct {
 has an index at ikey for faster search
 ```
 
-**api structure**
+# api structure
+
+---
+
+
 can be found in ./server/cmd/main.go
-Protected routes require a session token via `Authorization` header.
+
+Protected routes require a session token via Authorization header.
 
 
 ```
@@ -133,16 +152,25 @@ Response: top 5 users by max streak (rank, username, value, currentUser)
 ```
 
 
-**real time**
-* updates to leaderboard, score, streaks is done in real time
+# real time
 
-**edge case handeling**
+---
+
+* updates to leaderboard, score and  streaks is done in real time
+
+# edge case handeling
+
+---
+
 * streak gets reset on every wrong answer
 * state version checked, stale states are discarded
 * duplicate submissions dont update streak because of a check with the answer log (idempotency)
 
 
-**docker**
+# docker
+
+---
+
 * frontend and backend both have Dockerfiles
 * docker compose to get both running
 * envionment variables injected into React using an entrypoint scrip found at ./web/entrypoint.sh
