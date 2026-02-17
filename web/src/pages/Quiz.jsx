@@ -4,7 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import styles from "./Quiz.module.css";
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL;
+// const BASE_URL = process.env.REACT_APP_BACKEND_URL;
+const BASE_URL = window.RUNTIME_CONFIG.BACKEND_URL;
 
 export function Quiz() {
   const { user } = useAuth();

@@ -3,8 +3,9 @@ import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 
 const AuthContext = createContext();
-const BASE_URL = process.env.REACT_APP_BACKEND_URL;
+// const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
+const BASE_URL = window.RUNTIME_CONFIG.BACKEND_URL;
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
