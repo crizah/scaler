@@ -67,6 +67,8 @@ func (s *Server) RegisterUser(c *gin.Context) {
 		return
 	}
 
+	// this needs to set cookies right?
+
 	c.JSON(http.StatusCreated, RegisterRes{
 		Username:     req.Username,
 		SessionToken: token,

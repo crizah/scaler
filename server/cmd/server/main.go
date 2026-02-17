@@ -7,14 +7,17 @@ import (
 	"server/internal/server"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 // main.go
 func main() {
+	godotenv.Load()
 	base, err := server.InitialiseServer()
 	if err != nil {
 		log.Fatal(err)
 	}
+	// base.PopulateQuestions()
 
 	authServer := auth.NewAuthServer(base)
 	quizServer := quiz.NewQuizServer(base)
@@ -22,8 +25,8 @@ func main() {
 	r := gin.Default()
 
 	v1 := r.Group("/v1")
-	v1.POST("/auth/register", authServer.RegisterUser)
-	v1.POST("/auth/session", authServer.Session)
+	v1.POST("/auth/register", authServer.RegisterUser) // works
+	v1.POST("/auth/session", authServer.Session)       // works
 
 	protected := v1.Group("/")
 	protected.Use(authServer.AuthMiddleware())
@@ -33,5 +36,5 @@ func main() {
 	// protected.GET("/leaderboard/score", quizServer.LeaderboardScore)
 	// protected.GET("/leaderboard/streak", quizServer.LeaderboardStreak)
 
-	r.Run(":8080")
+	r.Run(":8081")
 }
